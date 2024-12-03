@@ -1,0 +1,93 @@
+<!--
+Basic Requirement 2:
+Create a form or poll relating to your chosen dataset on your information system that collects
+and stores data from the users. This form must show evidence of the use of JavaScript.
+-->
+
+<html>
+  <body>
+    <!-- Set up your HTML here -->
+    
+    <label for="fieldText1">Make:</label>
+    <input type="text" id="fieldText1" defaultValue="Enter Make"><br/>
+    <label for="fieldText2">Model:</label>
+    <input type="text" id="fieldText2" defaultValue="Enter Model"><br/>
+    <label for="fieldSlider">Your guess at percentage failure at NCT test:</label>
+    <input type="range" id="fieldSlider" min="0" max="100" step= "1" value="50"><br/>
+    <label for="fieldCheckbox">Tick to agree that we can use your data:</label>
+    <input type="checkbox" id="fieldCheckbox" name="fieldCheckbox" value="fieldCheckbox"><br/>
+    <button id="submitButton">Submit Answer</button><br/>
+    <p id="result"></p>
+
+    <script>
+      // ----------------------------------------------------
+      // Don't modify the code below this line
+      function sendMessageToStreamlitClient(type, data) {
+        var outData = Object.assign({
+          isStreamlitMessage: true,
+          type: type,
+        }, data);
+        window.parent.postMessage(outData, "*");
+      }
+
+      function init() {
+        sendMessageToStreamlitClient("streamlit:componentReady", { apiVersion: 1 });
+      }
+
+      function setFrameHeight(height) {
+        sendMessageToStreamlitClient("streamlit:setFrameHeight", { height: height });
+      }
+
+      // The `data` argument can be any JSON-serializable value.
+      function sendDataToPython(data) {
+        sendMessageToStreamlitClient("streamlit:setComponentValue", data);
+      }
+      // Don't modify the code above this line
+
+      // ----------------------------------------------------
+      // Now modify this part of the code to fit your needs:
+
+      var myFieldText1 = document.getElementById("fieldText1");
+      var myFieldText2 = document.getElementById("fieldText2");
+      var myFieldCheckbox = document.getElementById("fieldCheckbox");
+      var myFieldSlider = document.getElementById("fieldSlider");
+      var myResult = document.getElementById("result");
+      var submitButton = document.getElementById("submitButton"); // Reference to the Submit button      
+
+      myResult.innerHTML = "Submit to add your data.";
+      submitButton.addEventListener("click", function () {
+        sendDataToPython({
+          value: 
+          { "Make": myFieldText1.value,
+            "Model": myFieldText2.value, 
+            "PercentageFailure": myFieldSlider.value,
+            "Agree": myFieldCheckbox.checked, 
+          },
+          dataType: "json",
+        });
+        myResult.innerHTML = "Data submitted.";
+      });
+
+
+      function onDataFromPython(event) {
+        if (event.data.type !== "streamlit:render") return;
+        // Access data sent from the Streamlit app here, if needed
+      }
+
+      // Hook things up!
+      window.addEventListener("message", onDataFromPython);
+      init();
+
+      // Hack to autoset the iframe height.
+      window.addEventListener("load", function () {
+        window.setTimeout(function () {
+          setFrameHeight(document.documentElement.clientHeight);
+        }, 0);
+      });
+
+      // Optionally, if the automatic height computation fails you, give this component a height manually
+      // by commenting out below:
+      //setFrameHeight(200);
+    </script>
+  </body>
+</html>
